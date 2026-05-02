@@ -4,6 +4,7 @@ from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
+<<<<<<< HEAD
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report, ConfusionMatrixDisplay
 
@@ -24,13 +25,7 @@ for i, ax in enumerate(axes.flat):
 plt.tight_layout()
 plt.show()
 
-# trains the model ─
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
-)
-#
-
-# 
+# trains the model 
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test  = scaler.transform(X_test)     # Never fit on test data!
@@ -78,3 +73,66 @@ def predict_image(path, model, scaler):
         print(f"Confidence: {proba[pred]*100:.1f}%")
 
 # predict_image("my_digit.png", lr, scaler)
+=======
+from PIL import Image
+
+# ── Load MNIST ──────────────────────────────────────────────
+print("Loading MNIST...")
+mnist = fetch_openml('mnist_784', version=1, as_frame=False)
+X, y = mnist.data, mnist.target.astype(int)
+print("Done! Dataset shape:", X.shape)
+
+# ── Use only 10,000 samples (not all 70,000) ────────────────
+print("Reducing dataset...")
+X_small, _, y_small, _ = train_test_split(
+    X, y, train_size=10000, random_state=42, stratify=y
+)
+
+# ── Split ───────────────────────────────────────────────────
+X_train, X_test, y_train, y_test = train_test_split(
+    X_small, y_small, test_size=0.2, random_state=42, stratify=y_small
+)
+print(f"Training on {len(X_train)} samples, testing on {len(X_test)}")
+
+# ── Scale ───────────────────────────────────────────────────
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test  = scaler.transform(X_test)
+
+# ── Train (fast settings) ───────────────────────────────────
+print("Training model... (should take 20–40 seconds)")
+model = LogisticRegression(
+    max_iter=100,       # was 1000 — reduced heavily
+    solver='lbfgs',     # was 'saga' — lbfgs is much faster on small data
+    n_jobs=1,           # was -1 — single core is more stable on low-end CPUs
+    multi_class='auto'
+)
+model.fit(X_train, y_train)
+print(f"Model accuracy: {model.score(X_test, y_test)*100:.1f}%")
+
+# ── Predict your MS Paint image ─────────────────────────────
+def predict_image(path):
+    img = Image.open(path).convert('L')
+    img = img.resize((28, 28), Image.LANCZOS)
+    pixels = np.array(img)
+
+    plt.figure(figsize=(3, 3))
+    plt.imshow(pixels, cmap='gray')
+    plt.title("What the model sees (28×28)")
+    plt.axis('off')
+    plt.show()
+
+    pixels_flat = pixels.flatten().reshape(1, -1).astype(float)
+    pixels_scaled = scaler.transform(pixels_flat)
+    pred = model.predict(pixels_scaled)[0]
+
+    proba = model.predict_proba(pixels_scaled)[0]
+    print(f"\n Predicted digit : {pred}")
+    print(f" Confidence      : {proba[pred]*100:.1f}%")
+    print(f"\n All probabilities:")
+    for digit, prob in enumerate(proba):
+        bar = '█' * int(prob * 40)
+        print(f"  {digit} | {bar:<40} {prob*100:.1f}%")
+
+predict_image(r"C:\usegit\Data-Mining\my_digit.png")
+
