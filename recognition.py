@@ -9,8 +9,6 @@ from sklearn.svm import SVC
 from sklearn.metrics import classification_report, ConfusionMatrixDisplay
 
 # MNIST is the dataset used for digit recognition
-# 70,000 images of handwritten digits (0–9)
-
 mnist = fetch_openml('mnist_784', version=1, as_frame=False)
 X, y = mnist.data, mnist.target.astype(int)
 
@@ -38,7 +36,7 @@ y_pred_lr = lr.predict(X_test)
 print("\n── Logistic Regression ──")
 print(classification_report(y_test, y_pred_lr))
 
-# ── Step 7: Train SVM (better accuracy) ──────────────────────
+# ── Step 7: Train SVM ──────────────────────
 svm = SVC(kernel='rbf', C=5, gamma='scale')
 svm.fit(X_train, y_train)
 y_pred_svm = svm.predict(X_test)
@@ -46,7 +44,7 @@ y_pred_svm = svm.predict(X_test)
 print("\n── SVM (RBF kernel) ──")
 print(classification_report(y_test, y_pred_svm))
 
-# ── Step 8: Confusion Matrix ─────────────────────────────────
+
 fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 for ax, model, name, preds in zip(
     axes,
@@ -59,7 +57,7 @@ for ax, model, name, preds in zip(
 plt.tight_layout()
 plt.show()
 
-# ── Step 9: Predict your own drawing ─────────────────────────
+# ── Step 9: Predict drawing ─────────────────────────
 from PIL import Image
 
 def predict_image(path, model, scaler):
@@ -72,8 +70,8 @@ def predict_image(path, model, scaler):
     if proba is not None:
         print(f"Confidence: {proba[pred]*100:.1f}%")
 
-# predict_image("my_digit.png", lr, scaler)
-=======
+
+
 from PIL import Image
 
 # ── Load MNIST ──────────────────────────────────────────────
@@ -82,29 +80,28 @@ mnist = fetch_openml('mnist_784', version=1, as_frame=False)
 X, y = mnist.data, mnist.target.astype(int)
 print("Done! Dataset shape:", X.shape)
 
-# ── Use only 10,000 samples (not all 70,000) ────────────────
-print("Reducing dataset...")
+# ── Using 10,000 samples ────────────────
 X_small, _, y_small, _ = train_test_split(
     X, y, train_size=10000, random_state=42, stratify=y
 )
 
-# ── Split ───────────────────────────────────────────────────
+# ── Split 
 X_train, X_test, y_train, y_test = train_test_split(
     X_small, y_small, test_size=0.2, random_state=42, stratify=y_small
 )
 print(f"Training on {len(X_train)} samples, testing on {len(X_test)}")
 
-# ── Scale ───────────────────────────────────────────────────
+# ── Scale
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test  = scaler.transform(X_test)
 
-# ── Train (fast settings) ───────────────────────────────────
+# ── Train
 print("Training model... (should take 20–40 seconds)")
 model = LogisticRegression(
-    max_iter=100,       # was 1000 — reduced heavily
-    solver='lbfgs',     # was 'saga' — lbfgs is much faster on small data
-    n_jobs=1,           # was -1 — single core is more stable on low-end CPUs
+    max_iter=100,       
+    solver='lbfgs',    
+    n_jobs=1,         
     multi_class='auto'
 )
 model.fit(X_train, y_train)
@@ -135,4 +132,5 @@ def predict_image(path):
         print(f"  {digit} | {bar:<40} {prob*100:.1f}%")
 
 predict_image(r"C:\usegit\Data-Mining\my_digit.png")
-
+predict_image(r"C:\usegit\Data-Mining\my_digit2.png")
+#any heavy model my laptop cannot handle 
